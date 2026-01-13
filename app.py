@@ -9,15 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 import plotly.express as px
 
-# -------------------------
-# Page config
-# -------------------------
-st.set_page_config(page_title="Trust & Churn Analytics", layout="wide")
-st.title("Customer Trust Erosion & Churn Prediction")
 
-# -------------------------
-# NLTK setup (Streamlit safe)
-# -------------------------
 @st.cache_resource
 def load_resources():
     nltk.download("stopwords")
@@ -26,27 +18,19 @@ def load_resources():
 
 stop_words, sia = load_resources()
 
-# -------------------------
-# Text cleaning
-# -------------------------
 def clean_text_fn(text):
     text = str(text).lower()
     text = re.sub(r"[^a-z\s]", "", text)
     words = [w for w in text.split() if w not in stop_words]
     return " ".join(words)
 
-# -------------------------
-# Sidebar upload
-# -------------------------
 st.sidebar.header("Data Upload")
 uploaded_file = st.sidebar.file_uploader("Upload your CSV", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # -------------------------
-    # Preprocessing
-    # -------------------------
+
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
     df["Trust_Erosion"] = (df["rating"] <= 2).astype(int)
 
@@ -56,9 +40,7 @@ if uploaded_file:
     )
 
     # -------------------------
-    # Visualizations
-    # -------------------------
-    st.subheader("Trust & Sentiment Insights")
+    st.subheader("Trust Erosion & Sentiment Insights")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -81,9 +63,6 @@ if uploaded_file:
         )
         st.plotly_chart(fig_sent, use_container_width=True)
 
-    # -------------------------
-    # Trend
-    # -------------------------
     df["month"] = df["timestamp"].dt.to_period("M").astype(str)
     trend = df.groupby("month")["Trust_Erosion"].sum().reset_index()
 
@@ -96,9 +75,7 @@ if uploaded_file:
     )
     st.plotly_chart(fig_trend, use_container_width=True)
 
-    # -------------------------
-    # User-level aggregation
-    # -------------------------
+
     latest_date = df["timestamp"].max()
     df["recency"] = (
         latest_date - df.groupby("user_id")["timestamp"].transform("max")
@@ -110,9 +87,7 @@ if uploaded_file:
         "recency": "max"
     }).reset_index()
 
-    # -------------------------
-    # Churn proxy (important)
-    # -------------------------
+
     user_df["churn"] = (
         (user_df["recency"] > 90) &
         (user_df["sentiment_score"] < -0.2)
@@ -122,20 +97,15 @@ if uploaded_file:
     y = user_df["churn"]
 
     if y.nunique() > 1:
-        # -------------------------
-        # Scaling + model
-        # -------------------------
+        
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
         model = LogisticRegression()
         model.fit(X_scaled, y)
 
-        # -------------------------
-        # Prediction UI
-        # -------------------------
         st.divider()
-        st.subheader("Predict Churn Risk")
+        st.subheader("Churn Risk Prediction")
 
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -165,6 +135,7 @@ if uploaded_file:
 
 else:
     st.info("Upload a CSV file to see analytics and churn prediction.")
+
 
 
 
