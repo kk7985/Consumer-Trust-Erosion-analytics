@@ -1,4 +1,3 @@
-!pip install ntlk
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -96,3 +95,4 @@ if uploaded_file:
 else:
 
     st.info("Upload a CSV file to see the interactive graphs and predictions.")
+
