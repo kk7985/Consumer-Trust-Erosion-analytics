@@ -168,6 +168,14 @@ if uploaded_file:
         X_train, X_test, y_train, y_test = train_test_split(
             X_scaled, y, test_size=0.2, random_state=42, stratify=y
         )
+        # after feature engineering
+df = df[
+    (df["rating"].between(1, 5)) &
+    (df["sentiment_score"].between(-1, 1)) &
+    (df["recency"].between(0, 365))
+]
+
+df = remove_outliers_iqr(df, ["sentiment_score", "recency"])
 
         model = LogisticRegression(class_weight="balanced")
         model.fit(X_train, y_train)
@@ -204,6 +212,7 @@ if uploaded_file:
 
 else:
     st.info("Upload a CSV file to see analytics and churn prediction.")
+
 
 
 
